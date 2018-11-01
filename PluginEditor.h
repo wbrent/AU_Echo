@@ -1,9 +1,9 @@
 /*
   ==============================================================================
 
-    This file was auto-generated!
+	This file was auto-generated!
 
-    It contains the basic framework code for a JUCE plugin editor.
+	It contains the basic framework code for a JUCE plugin editor.
 
   ==============================================================================
 */
@@ -18,20 +18,26 @@
 //==============================================================================
 /**
 */
-class EchoDelayAudioProcessorEditor  : public AudioProcessorEditor
+class Echo1AudioProcessorEditor : public AudioProcessorEditor, private Slider::Listener
 {
 public:
-    EchoDelayAudioProcessorEditor (EchoDelayAudioProcessor&);
-    ~EchoDelayAudioProcessorEditor();
+	Echo1AudioProcessorEditor(Echo1AudioProcessor&);
+	~Echo1AudioProcessorEditor();
 
-    //==============================================================================
-    void paint (Graphics&) override;
-    void resized() override;
+	//==============================================================================
+	void paint(Graphics&) override;
+	void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    EchoDelayAudioProcessor& processor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EchoDelayAudioProcessorEditor)
+	void sliderValueChanged(Slider* slider) override;
+
+	// This reference is provided as a quick way for your editor to
+	// access the processor object that created it.
+	Echo1AudioProcessor& processor;
+
+	Slider delayTime;
+	Slider feedbackPercent;
+
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Echo1AudioProcessorEditor)
 };

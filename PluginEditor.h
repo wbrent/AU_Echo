@@ -18,11 +18,11 @@
 //==============================================================================
 /**
 */
-class Echo1AudioProcessorEditor : public AudioProcessorEditor, private Slider::Listener
+class EchoDelayAudioProcessorEditor : public AudioProcessorEditor, private Slider::Listener
 {
 public:
-	Echo1AudioProcessorEditor(Echo1AudioProcessor&);
-	~Echo1AudioProcessorEditor();
+	EchoDelayAudioProcessorEditor(EchoDelayAudioProcessor&);
+	~EchoDelayAudioProcessorEditor();
 
 	//==============================================================================
 	void paint(Graphics&) override;
@@ -34,10 +34,10 @@ private:
 
 	// This reference is provided as a quick way for your editor to
 	// access the processor object that created it.
-	Echo1AudioProcessor& processor;
+	EchoDelayAudioProcessor& processor;
 
 	Slider delayTime;
 	Slider feedbackPercent;
 
-	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Echo1AudioProcessorEditor)
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EchoDelayAudioProcessorEditor)
 };

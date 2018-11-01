@@ -12,7 +12,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-Echo1AudioProcessor::Echo1AudioProcessor()
+EchoDelayAudioProcessor::EchoDelayAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
 	: AudioProcessor(BusesProperties()
 #if ! JucePlugin_IsMidiEffect
@@ -36,7 +36,7 @@ Echo1AudioProcessor::Echo1AudioProcessor()
 	delFdbk = 0.7f;
 }
 
-Echo1AudioProcessor::~Echo1AudioProcessor()
+EchoDelayAudioProcessor::~EchoDelayAudioProcessor()
 {
 	for (int i = 0; i < storedNumChannels; i++)
 		delete[] delayBufferArray[i];
@@ -45,12 +45,12 @@ Echo1AudioProcessor::~Echo1AudioProcessor()
 }
 
 //==============================================================================
-const String Echo1AudioProcessor::getName() const
+const String EchoDelayAudioProcessor::getName() const
 {
 	return JucePlugin_Name;
 }
 
-bool Echo1AudioProcessor::acceptsMidi() const
+bool EchoDelayAudioProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
 	return true;
@@ -59,7 +59,7 @@ bool Echo1AudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool Echo1AudioProcessor::producesMidi() const
+bool EchoDelayAudioProcessor::producesMidi() const
 {
 #if JucePlugin_ProducesMidiOutput
 	return true;
@@ -68,7 +68,7 @@ bool Echo1AudioProcessor::producesMidi() const
 #endif
 }
 
-bool Echo1AudioProcessor::isMidiEffect() const
+bool EchoDelayAudioProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
 	return true;
@@ -77,37 +77,37 @@ bool Echo1AudioProcessor::isMidiEffect() const
 #endif
 }
 
-double Echo1AudioProcessor::getTailLengthSeconds() const
+double EchoDelayAudioProcessor::getTailLengthSeconds() const
 {
 	return 0.0;
 }
 
-int Echo1AudioProcessor::getNumPrograms()
+int EchoDelayAudioProcessor::getNumPrograms()
 {
 	return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
 				// so this should be at least 1, even if you're not really implementing programs.
 }
 
-int Echo1AudioProcessor::getCurrentProgram()
+int EchoDelayAudioProcessor::getCurrentProgram()
 {
 	return 0;
 }
 
-void Echo1AudioProcessor::setCurrentProgram(int index)
+void EchoDelayAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const String Echo1AudioProcessor::getProgramName(int index)
+const String EchoDelayAudioProcessor::getProgramName(int index)
 {
 	return {};
 }
 
-void Echo1AudioProcessor::changeProgramName(int index, const String& newName)
+void EchoDelayAudioProcessor::changeProgramName(int index, const String& newName)
 {
 }
 
 //==============================================================================
-void Echo1AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void EchoDelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
 	// Use this method as the place to do any pre-playback
 	// initialisation that you need..
@@ -126,14 +126,14 @@ void Echo1AudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 	}
 }
 
-void Echo1AudioProcessor::releaseResources()
+void EchoDelayAudioProcessor::releaseResources()
 {
 	// When playback stops, you can use this as an opportunity to free up any
 	// spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool Echo1AudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool EchoDelayAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
 	ignoreUnused(layouts);
@@ -156,7 +156,7 @@ bool Echo1AudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) con
 }
 #endif
 
-void Echo1AudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
 	ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
@@ -190,14 +190,14 @@ void Echo1AudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& m
 			offset = delTime;
 		}
 		else
-		{	
+		{
 			offset = 0;
 		}
 
 
 		// mix the current block of input with the delayed block
 		for (int j = 0; j < blockSize; j++)
-			channelData[j] += delayBufferArray[channel][delBufSizeSamps - (int)roundf((thisDelTime-offset) * getSampleRate()) + j] * delFdbk;
+			channelData[j] += delayBufferArray[channel][delBufSizeSamps - (int)roundf((thisDelTime - offset) * getSampleRate()) + j] * delFdbk;
 
 		// push the delay buffer contents backwards by 1 block
 		for (int j = 0; j < delBufSizeSamps - blockSize; j++)
@@ -210,25 +210,25 @@ void Echo1AudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& m
 }
 
 //==============================================================================
-bool Echo1AudioProcessor::hasEditor() const
+bool EchoDelayAudioProcessor::hasEditor() const
 {
 	return true; // (change this to false if you choose to not supply an editor)
 }
 
-AudioProcessorEditor* Echo1AudioProcessor::createEditor()
+AudioProcessorEditor* EchoDelayAudioProcessor::createEditor()
 {
-	return new Echo1AudioProcessorEditor(*this);
+	return new EchoDelayAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void Echo1AudioProcessor::getStateInformation(MemoryBlock& destData)
+void EchoDelayAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
 	// You should use this method to store your parameters in the memory block.
 	// You could do that either as raw data, or use the XML or ValueTree classes
 	// as intermediaries to make it easy to save and load complex data.
 }
 
-void Echo1AudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void EchoDelayAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
 	// You should use this method to restore your parameters from this memory block,
 	// whose contents will have been created by the getStateInformation() call.
@@ -238,5 +238,5 @@ void Echo1AudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-	return new Echo1AudioProcessor();
+	return new EchoDelayAudioProcessor();
 }

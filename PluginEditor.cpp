@@ -12,7 +12,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-Echo1AudioProcessorEditor::Echo1AudioProcessorEditor(Echo1AudioProcessor& p)
+EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor(EchoDelayAudioProcessor& p)
 	: AudioProcessorEditor(&p), processor(p)
 {
 	// Make sure that before the constructor has finished, you've set the
@@ -33,7 +33,7 @@ Echo1AudioProcessorEditor::Echo1AudioProcessorEditor(Echo1AudioProcessor& p)
 	feedbackPercent.setPopupDisplayEnabled(true, false, this);
 	feedbackPercent.setTextValueSuffix(" Feedback (%)");
 	feedbackPercent.setValue(1.0);
-	
+
 	// this function adds the slider to the editor
 	addAndMakeVisible(&delayTime);
 
@@ -41,28 +41,28 @@ Echo1AudioProcessorEditor::Echo1AudioProcessorEditor(Echo1AudioProcessor& p)
 
 	// add the listener to the slider
 	delayTime.addListener(this);
-	
+
 	feedbackPercent.addListener(this);
 }
 
-Echo1AudioProcessorEditor::~Echo1AudioProcessorEditor()
+EchoDelayAudioProcessorEditor::~EchoDelayAudioProcessorEditor()
 {
 }
 
-void Echo1AudioProcessorEditor::sliderValueChanged(Slider* slider)
+void EchoDelayAudioProcessorEditor::sliderValueChanged(Slider* slider)
 {
-/*
-	// why doesn't this work?
+	/*
+		// why doesn't this work?
 
-	for(int i = 0; i < processor.storedNumChannels; i++)
-		processor.delTime[i] = delayTime.getValue();
-*/
+		for(int i = 0; i < processor.storedNumChannels; i++)
+			processor.delTime[i] = delayTime.getValue();
+	*/
 	processor.delTime = delayTime.getValue() / 1000.0f;
-	processor.delFdbk = feedbackPercent.getValue()/100.0f;
-	
+	processor.delFdbk = feedbackPercent.getValue() / 100.0f;
+
 }
 //==============================================================================
-void Echo1AudioProcessorEditor::paint(Graphics& g)
+void EchoDelayAudioProcessorEditor::paint(Graphics& g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
@@ -72,7 +72,7 @@ void Echo1AudioProcessorEditor::paint(Graphics& g)
 	g.drawFittedText("Echo Delay_V1", 0, 0, getWidth(), 30, Justification::centred, 1);
 }
 
-void Echo1AudioProcessorEditor::resized()
+void EchoDelayAudioProcessorEditor::resized()
 {
 	// This is generally where you'll want to lay out the positions of any
 	// subcomponents in your editor..

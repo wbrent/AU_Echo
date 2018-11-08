@@ -15,15 +15,15 @@
 //==============================================================================
 /**
 */
-class Echo1AudioProcessor : public AudioProcessor
+class EchoDelayAudioProcessor : public AudioProcessor
 {
 public:
 	//==============================================================================
-	Echo1AudioProcessor();
-	~Echo1AudioProcessor();
+	EchoDelayAudioProcessor();
+	~EchoDelayAudioProcessor();
 
 	// Variables which will store values from the sliders
-	
+
 	// float delayTimeVal;
 	// float feedbackPercentVal;
 
@@ -74,5 +74,5 @@ public:
 
 private:
 	//==============================================================================
-	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Echo1AudioProcessor)
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EchoDelayAudioProcessor)
 };

@@ -1,4 +1,4 @@
-#N canvas 649 89 804 800 12;
+#N canvas 210 96 1328 798 12;
 #X obj 387 328 +~;
 #X obj 118 524 delwrite~ myBuf-L 5000;
 #X obj 467 319 +~;
@@ -24,7 +24,7 @@
 #X connect 4 0 7 0;
 #X connect 5 0 2 0;
 #X connect 8 0 5 0;
-#X restore 374 33 pd noise-bursts;
+#X restore 373 33 pd noise-bursts;
 #X floatatom 536 41 5 0 0 1 delTime - -;
 #X obj 596 117 * 2;
 #N canvas 238 284 828 424 delay-reads 0;
@@ -78,7 +78,23 @@
 #X connect 12 0 8 0;
 #X coords 0 -1 1 1 150 200 1 320 200;
 #X restore 388 522 pd output;
-#N canvas 0 50 691 461 extra-delay 0;
+#X obj 314 69 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X obj 362 424 +~;
+#X text 713 58 1) Need to make a new mono delay buffer (offsetDelBuf).
+Make it 5 seconds \, but flexible in size depending on samplerate.
+;
+#X text 713 108 2) Account for deleting that buffer in the destructor.
+;
+#X text 713 138 3) Put the left channel into the offsetDelBuf \, and
+read audio out of it delTime ms later. That delayed signal is what
+you send to the input of the left channel recirculating delay system.
+;
+#X text 713 218 4) Set both the left and right recirculating delay
+systems to a delay time of delTime*2;
+#X text 713 268 5) Direct left channel signal must be mixed (added)
+with the output of the left channel recirculating delay system;
+#N canvas 872 26 691 461 offsetDelBuf 0;
 #X obj 183 222 delread~ tmpDel;
 #X obj 350 76 inlet;
 #X obj 83 67 inlet~;
@@ -88,28 +104,25 @@
 #X connect 0 0 3 0;
 #X connect 1 0 0 0;
 #X connect 4 0 5 0;
-#X restore 397 136 pd extra-delay;
-#X obj 314 69 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
-#X obj 362 424 +~;
+#X restore 397 136 pd offsetDelBuf;
 #X connect 0 0 1 0;
-#X connect 0 0 12 1;
+#X connect 0 0 11 1;
 #X connect 2 0 9 1;
 #X connect 2 0 3 0;
 #X connect 4 0 1 0;
 #X connect 4 0 3 0;
-#X connect 5 0 10 0;
-#X connect 5 0 12 0;
-#X connect 5 1 10 2;
+#X connect 5 0 17 0;
+#X connect 5 0 11 0;
+#X connect 5 1 17 2;
 #X connect 6 0 7 0;
-#X connect 6 0 10 1;
+#X connect 6 0 17 1;
 #X connect 7 0 8 3;
 #X connect 7 0 8 1;
 #X connect 8 0 0 0;
 #X connect 8 1 0 1;
 #X connect 8 2 2 0;
 #X connect 8 3 2 1;
-#X connect 10 0 8 0;
-#X connect 10 1 8 2;
-#X connect 11 0 5 0;
-#X connect 12 0 9 0;
+#X connect 10 0 5 0;
+#X connect 11 0 9 0;
+#X connect 17 0 8 0;
+#X connect 17 1 8 2;

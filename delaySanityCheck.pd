@@ -1,10 +1,10 @@
-#N canvas 210 96 1328 798 12;
+#N canvas 349 92 1243 798 12;
 #X obj 387 328 +~;
 #X obj 118 524 delwrite~ myBuf-L 5000;
 #X obj 467 319 +~;
 #X obj 593 531 delwrite~ myBuf-R 5000;
 #X msg 435 426 clear;
-#N canvas 156 361 786 382 noise-bursts 0;
+#N canvas 894 6 786 382 noise-bursts 0;
 #X obj 89 107 noise~;
 #X obj 90 160 *~;
 #X obj 474 180 vline~;
@@ -15,19 +15,21 @@
 #X obj 388 280 outlet~;
 #X obj 474 46 inlet;
 #X obj 162 225 delwrite~ tmpDel 5000;
+#X obj 161 202 *~ 0.7;
 #X connect 0 0 1 0;
-#X connect 1 0 9 0;
 #X connect 1 0 6 0;
+#X connect 1 0 10 0;
 #X connect 2 0 1 1;
 #X connect 2 0 4 1;
 #X connect 3 0 4 0;
 #X connect 4 0 7 0;
 #X connect 5 0 2 0;
 #X connect 8 0 5 0;
+#X connect 10 0 9 0;
 #X restore 373 33 pd noise-bursts;
 #X floatatom 536 41 5 0 0 1 delTime - -;
 #X obj 596 117 * 2;
-#N canvas 238 284 828 424 delay-reads 0;
+#N canvas 1038 218 828 424 delay-reads 0;
 #X obj 66 44 inlet~;
 #X obj 376 50 inlet~;
 #X obj 65 355 outlet~;
@@ -94,8 +96,8 @@ you send to the input of the left channel recirculating delay system.
 systems to a delay time of delTime*2;
 #X text 713 268 5) Direct left channel signal must be mixed (added)
 with the output of the left channel recirculating delay system;
-#N canvas 872 26 691 461 offsetDelBuf 0;
-#X obj 183 222 delread~ tmpDel;
+#N canvas 1043 13 691 461 offsetDelBuf 0;
+#X obj 181 205 delread~ tmpDel;
 #X obj 350 76 inlet;
 #X obj 83 67 inlet~;
 #X obj 189 356 outlet~;

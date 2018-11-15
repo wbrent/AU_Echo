@@ -69,6 +69,8 @@ public:
 	float delFdbk;
 
 	float **delayBufferArray;
+	float *offsetDelayBuffer;
+	float *leftMix;
 
 	int storedNumChannels;
 

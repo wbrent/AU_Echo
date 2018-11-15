@@ -21,27 +21,25 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor(EchoDelayAudioProce
 
 	// these define the parameters of our slider object
 	delayTime.setSliderStyle(Slider::LinearBarVertical);
-	delayTime.setRange(50.0, 2000.00, 50.0);
+	delayTime.setRange(50.0, 2000.00, 1.0);
 	delayTime.setTextBoxStyle(Slider::NoTextBox, false, 90, 0);
 	delayTime.setPopupDisplayEnabled(true, false, this);
 	delayTime.setTextValueSuffix(" Delay Time (ms)");
-	delayTime.setValue(1.0);
+	delayTime.setValue(250.0);
 
 	feedbackPercent.setSliderStyle(Slider::LinearBarVertical);
 	feedbackPercent.setRange(0.0, 99.00, 1.0);
 	feedbackPercent.setTextBoxStyle(Slider::NoTextBox, false, 90, 0);
 	feedbackPercent.setPopupDisplayEnabled(true, false, this);
 	feedbackPercent.setTextValueSuffix(" Feedback (%)");
-	feedbackPercent.setValue(1.0);
+	feedbackPercent.setValue(70.0);
 
 	// this function adds the slider to the editor
 	addAndMakeVisible(&delayTime);
-
 	addAndMakeVisible(&feedbackPercent);
 
 	// add the listener to the slider
 	delayTime.addListener(this);
-
 	feedbackPercent.addListener(this);
 }
 
@@ -59,7 +57,6 @@ void EchoDelayAudioProcessorEditor::sliderValueChanged(Slider* slider)
 	*/
 	processor.delTime = delayTime.getValue() / 1000.0f;
 	processor.delFdbk = feedbackPercent.getValue() / 100.0f;
-
 }
 //==============================================================================
 void EchoDelayAudioProcessorEditor::paint(Graphics& g)

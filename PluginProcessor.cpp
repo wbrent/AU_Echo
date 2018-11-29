@@ -25,11 +25,19 @@ EchoDelayAudioProcessor::EchoDelayAudioProcessor()
 #endif
 {
 	// this will be updated in prepareToPlay
-	storedSampleRate = 44100.0;
 	storedNumChannels = getTotalNumInputChannels();
+	storedSampleRate = 44100.0;
+	storedBlockSize = 2048.0;
 
-	delBufSize = 5.0f; // 5 seconds max delay time
-	delTime = 0.25f; // 250ms initial delay time
+	delBufSizeMs = 2000.0f; // 2 seconds max delay time
+
+	// we should really make a simple function for updating the delay time, because it happens all over the place and involves updating several variables
+	delTimeMs = 250; // 250ms initial delay time
+	delTimeSec = delTimeMs / 1000.0f;
+	delTimeSamps = roundf(delTimeSec * storedSampleRate);
+	doubleDelTimeSec = delTimeSec * 2.0;
+	doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
+
 	delFdbk = 0.7f; // 70% initial feedback
 }
 
@@ -112,19 +120,27 @@ void EchoDelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
 	// initialisation that you need..
 
 	storedSampleRate = sampleRate;
+	storedBlockSize = samplesPerBlock;
+	delBufSizeSec = delBufSizeMs / 1000.0f;
+	delBufSizeSamps = round(delBufSizeSec * storedSampleRate);
 
-	// first, set up the offset delay buffer for the left channel
-	offsetDelayBuffer = new float[round(delBufSize * storedSampleRate)];
+	// refresh delTimeSamps and doubleDelTimeSamps in case the sample rate just changed
+	delTimeSamps = roundf(delTimeSec * storedSampleRate);
+	doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
+
+	// first, set up the offset delay buffer for the left channel.
+	// remember that delBufSize is in ms - need to convert to seconds.
+	offsetDelayBuffer = new float[delBufSizeSamps];
 
 	// fill the offset delay with silence to initialize
-	for (int i = 0; i < round(delBufSize * storedSampleRate); i++)
+	for (int i = 0; i < delBufSizeSamps; i++)
 		offsetDelayBuffer[i] = 0.0;
 
 	// next, set up the leftMix buffer to store the offsetDelayed left  channel along with the output of the main left delay buffer
-	leftMix = new float[samplesPerBlock];
+	leftMix = new float[storedBlockSize];
 
 	// fill the leftMix buffer with silence to initialize
-	for (int i = 0; i < samplesPerBlock; i++)
+	for (int i = 0; i < storedBlockSize; i++)
 		leftMix[i] = 0.0;
 
 	// now, set up the main L/R delay buffers
@@ -133,10 +149,10 @@ void EchoDelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
 	for (int i = 0; i < storedNumChannels; i++)
 	{
 		// the delay buffer size in samples should really be a variable declared in .h
-		delayBufferArray[i] = new float[round(delBufSize * storedSampleRate)];
+		delayBufferArray[i] = new float[delBufSizeSamps];
 
 		// should make a variable for delBufSizeSamps
-		for (int j = 0; j < round(delBufSize * storedSampleRate); j++)
+		for (int j = 0; j < delBufSizeSamps; j++)
 			delayBufferArray[i][j] = 0.0;
 	}
 }
@@ -179,8 +195,6 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 	ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
 	auto totalNumOutputChannels = getTotalNumOutputChannels();
-	int delBufSizeSamps = roundf(delBufSize * getSampleRate());
-	int blockSize = buffer.getNumSamples();
 
 	// In case we have more outputs than inputs, this code clears any output
 	// channels that didn't contain input data, (because these aren't
@@ -189,7 +203,7 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 	// when they first compile a plugin, but obviously you don't need to keep
 	// this code if your algorithm always overwrites all the output channels.
 	for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-		buffer.clear(i, 0, blockSize);
+		buffer.clear(i, 0, storedBlockSize);
 
 	// This is the place where you'd normally do the guts of your plugin's
 	// audio processing...
@@ -200,7 +214,6 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 	for (int channel = 0; channel < totalNumInputChannels; ++channel)
 	{
 		auto* channelData = buffer.getWritePointer(channel);
-		float doubleDelTime = delTime * 2;
 
 		switch (channel)
 		{
@@ -208,44 +221,44 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 			// for the left channel, we need to mix the offsetDelayBuffer (not channelData) with the main delay buffer
 			case 0:
 				// push the delay buffer contents backwards by 1 block
-				for (int i = 0; i < delBufSizeSamps - blockSize; i++)
-					offsetDelayBuffer[i] = offsetDelayBuffer[i + blockSize];
+				for (int i = 0; i < delBufSizeSamps - storedBlockSize; i++)
+					offsetDelayBuffer[i] = offsetDelayBuffer[i + storedBlockSize];
 
 				// write the input to the head of the delay buffer
-				for (int i = 0; i < blockSize; i++)
-					offsetDelayBuffer[delBufSizeSamps - blockSize + i] = channelData[i] * delFdbk;
+				for (int i = 0; i < storedBlockSize; i++)
+					offsetDelayBuffer[delBufSizeSamps - storedBlockSize + i] = channelData[i] * delFdbk;
 				// mix the current block of input with the delayed block
 				
 				// mix the offset-delayed left channel with the main left channel delay output
-				for (int i = 0; i < blockSize; i++)
-					leftMix[i] = offsetDelayBuffer[delBufSizeSamps - (int)roundf(delTime*storedSampleRate) + i] + delayBufferArray[channel][delBufSizeSamps - (int)roundf(doubleDelTime*storedSampleRate) + i] * delFdbk;
+				for (int i = 0; i < storedBlockSize; i++)
+					leftMix[i] = offsetDelayBuffer[delBufSizeSamps - delTimeSamps + i] + delayBufferArray[channel][delBufSizeSamps - doubleDelTimeSamps + i] * delFdbk;
 
 				// push the delay buffer contents backwards by 1 block
-				for (int j = 0; j < delBufSizeSamps - blockSize; j++)
-					delayBufferArray[channel][j] = delayBufferArray[channel][j + blockSize];
+				for (int j = 0; j < delBufSizeSamps - storedBlockSize; j++)
+					delayBufferArray[channel][j] = delayBufferArray[channel][j + storedBlockSize];
 
 				// write the input+delay mix to the head of the delay buffer
-				for (int i = 0; i < blockSize; i++)
-					delayBufferArray[channel][delBufSizeSamps - blockSize + i] = leftMix[i];
+				for (int i = 0; i < storedBlockSize; i++)
+					delayBufferArray[channel][delBufSizeSamps - storedBlockSize + i] = leftMix[i];
 
 				// this is the output of the left channel
-				for (int i = 0; i < blockSize; i++)
+				for (int i = 0; i < storedBlockSize; i++)
 					channelData[i] += leftMix[i];
 
 				break;
 
 			default:
 				// mix the current block of input with the delayed block
-				for (int i = 0; i < blockSize; i++)
-					channelData[i] += delayBufferArray[channel][delBufSizeSamps - (int)roundf(doubleDelTime*storedSampleRate) + i] * delFdbk;
+				for (int i = 0; i < storedBlockSize; i++)
+					channelData[i] += delayBufferArray[channel][delBufSizeSamps - doubleDelTimeSamps + i] * delFdbk;
 				
 				// push the delay buffer contents backwards by 1 block
-				for (int i = 0; i < delBufSizeSamps - blockSize; i++)
-					delayBufferArray[channel][i] = delayBufferArray[channel][i + blockSize];
+				for (int i = 0; i < delBufSizeSamps - storedBlockSize; i++)
+					delayBufferArray[channel][i] = delayBufferArray[channel][i + storedBlockSize];
 
 				// write the input+delay mix to the head of the delay buffer
-				for (int i = 0; i < blockSize; i++)
-					delayBufferArray[channel][delBufSizeSamps - blockSize + i] = channelData[i];
+				for (int i = 0; i < storedBlockSize; i++)
+					delayBufferArray[channel][delBufSizeSamps - storedBlockSize + i] = channelData[i];
 				
 				break;
 		}

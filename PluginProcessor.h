@@ -60,19 +60,26 @@ public:
 	void getStateInformation(MemoryBlock& destData) override;
 	void setStateInformation(const void* data, int sizeInBytes) override;
 
-	float storedSampleRate;
+	int storedNumChannels;
+	double storedSampleRate;
+	int storedBlockSize;
 	// this should maybe be set with a radio button (ms)
-	float delBufSize;
+	float delBufSizeMs;
+	float delBufSizeSec;
+	int delBufSizeSamps;
 	// this should be set with a slider in ms
-	float delTime;
+	float delTimeMs;
+	float delTimeSec;
+	int delTimeSamps;
+	float doubleDelTimeSec;
+	int doubleDelTimeSamps;
+
 	// this should be set with a slider in percent (0-99)
 	float delFdbk;
 
 	float **delayBufferArray;
 	float *offsetDelayBuffer;
 	float *leftMix;
-
-	int storedNumChannels;
 
 private:
 	//==============================================================================

@@ -21,7 +21,7 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor(EchoDelayAudioProce
 
 	// these define the parameters of our slider object
 	delayTime.setSliderStyle(Slider::LinearBarVertical);
-	delayTime.setRange(50.0, 2000.00, 1.0);
+	delayTime.setRange(5.0, processor.delBufSizeMs, 1.0);
 	delayTime.setTextBoxStyle(Slider::NoTextBox, false, 90, 0);
 	delayTime.setPopupDisplayEnabled(true, false, this);
 	delayTime.setTextValueSuffix(" Delay Time (ms)");
@@ -55,7 +55,13 @@ void EchoDelayAudioProcessorEditor::sliderValueChanged(Slider* slider)
 		for(int i = 0; i < processor.storedNumChannels; i++)
 			processor.delTime[i] = delayTime.getValue();
 	*/
-	processor.delTime = delayTime.getValue() / 1000.0f;
+	processor.delTimeMs = delayTime.getValue();
+
+	processor.delTimeSec = processor.delTimeMs / 1000.0f;
+	processor.delTimeSamps = roundf(processor.delTimeSec * processor.storedSampleRate);
+	processor.doubleDelTimeSec = processor.delTimeSec * 2.0;
+	processor.doubleDelTimeSamps = roundf(processor.doubleDelTimeSec * processor.storedSampleRate);
+
 	processor.delFdbk = feedbackPercent.getValue() / 100.0f;
 }
 //==============================================================================

@@ -22,6 +22,8 @@ public:
 	EchoDelayAudioProcessor();
 	~EchoDelayAudioProcessor();
 
+	int sign(double x);
+
 	// Variables which will store values from the sliders
 
 	// float delayTimeVal;
@@ -64,6 +66,10 @@ public:
 	double storedSampleRate;
 	int storedBlockSize;
 	// this should maybe be set with a radio button (ms)
+	float delTimeMsTarget;
+	float delTimeMsRampRange;
+	float delTimeMsRampInc;
+	float delTimeMsRampTime;
 	float delBufSizeMs;
 	float delBufSizeSec;
 	int delBufSizeSamps;
@@ -75,11 +81,17 @@ public:
 	int doubleDelTimeSamps;
 
 	// this should be set with a slider in percent (0-99)
-	float delFdbk;
+	double delFdbk;
 
 	float **delayBufferArray;
 	float *offsetDelayBuffer;
 	float *leftMix;
+	
+	// we need an instance of the AudioPlayHead::CurrentPositionInfo class so that we can get BPM data
+	AudioPlayHead::CurrentPositionInfo currentPositionInfo;
+
+	bool sliderValChangeFlag;
+	bool delTimeMsRampFlag;
 
 private:
 	//==============================================================================

@@ -37,6 +37,7 @@ private:
 	EchoDelayAudioProcessor& processor;
 
 	Slider delayTime;
+	Slider delRampTime;
 	Slider feedbackPercent;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EchoDelayAudioProcessorEditor)

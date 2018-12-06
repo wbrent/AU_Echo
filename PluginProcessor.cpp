@@ -29,10 +29,6 @@ EchoDelayAudioProcessor::EchoDelayAudioProcessor()
 	storedSampleRate = 44100.0;
 	storedBlockSize = 2048.0;
 
-	sliderValChangeFlag = false;
-	delTimeMsRampFlag = false;
-	delTimeMsRampTime = .25;
-
 	delBufSizeMs = 2000.0f; // 2 seconds max delay time
 
 	// we should really make a simple function for updating the delay time, because it happens all over the place and involves updating several variables
@@ -53,12 +49,6 @@ EchoDelayAudioProcessor::~EchoDelayAudioProcessor()
 	delete[] delayBufferArray;
 	delete[] offsetDelayBuffer;
 	delete[] leftMix;
-}
-
-int EchoDelayAudioProcessor::sign(double x) {
-	if (x > 0.0) return 1;
-	if (x < 0.0) return -1;
-	return 0;
 }
 
 //==============================================================================
@@ -135,8 +125,8 @@ void EchoDelayAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
 	delBufSizeSamps = round(delBufSizeSec * storedSampleRate);
 
 	// refresh delTimeSamps and doubleDelTimeSamps in case the sample rate just changed
-	//delTimeSamps = roundf(delTimeSec * storedSampleRate);
-	//doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
+	delTimeSamps = roundf(delTimeSec * storedSampleRate);
+	doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
 
 	// first, set up the offset delay buffer for the left channel.
 	// remember that delBufSize is in ms - need to convert to seconds.
@@ -173,7 +163,7 @@ void EchoDelayAudioProcessor::releaseResources()
 	// spare memory, etc.
 
 	// WHY IN GOD'S NAME DOES IT CAUSE A CRASH TO DO DELETE THE MEMORY BUFFERS HERE?
-	// THE DELETES ARE DONE IN THE DESTRUCTOR FOR NOW, which reliably does not crash
+	// THE DELETES ARE DONE IN THE DESTRUCTOR FOR NOW
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -205,31 +195,6 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 	ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
 	auto totalNumOutputChannels = getTotalNumOutputChannels();
-	float thisDelTimeMs;
-	bool thisDelTimeMsRampFlag;
-
-	if (sliderValChangeFlag)
-	{
-		delTimeMsRampRange = delTimeMsTarget - delTimeMs;
-		// this is a per-sample increment for delTimeMs
-		delTimeMsRampInc = delTimeMsRampRange / (delTimeMsRampTime*storedSampleRate);
-		sliderValChangeFlag = false;
-		delTimeMsRampFlag = true;
-	}
-
-
-
-	// this should be a flag that gets switched on or off via a GUI toggle
-	if (false)
-	{
-		getPlayHead()->getCurrentPosition(currentPositionInfo);
-		delTimeSec = 60.0f / currentPositionInfo.bpm;
-		doubleDelTimeSec = delTimeSec * 2.0;
-		delTimeSamps = roundf(delTimeSec * storedSampleRate);
-		doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
-
-		// this should really update the delayTime slider state in the PluginEditor, to reflect the tempo lock
-	}
 
 	// In case we have more outputs than inputs, this code clears any output
 	// channels that didn't contain input data, (because these aren't
@@ -250,10 +215,6 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 	{
 		auto* channelData = buffer.getWritePointer(channel);
 
-		// reset the state of thisGainFactor and thisGainRampFlag per channel
-		thisDelTimeMs = delTimeMs;
-		thisDelTimeMsRampFlag = delTimeMsRampFlag;
-
 		switch (channel)
 		{
 			// for the left channel, we need to put the latest block of channelData[0] into offsetDelayBuffer
@@ -270,33 +231,7 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 				
 				// mix the offset-delayed left channel with the main left channel delay output
 				for (int i = 0; i < storedBlockSize; i++)
-				{
-					if (thisDelTimeMsRampFlag)
-					{
-						float delTimeMsDiff;
-
-						// since we haven't hit the target yet, add the increment
-						thisDelTimeMs += delTimeMsRampInc;
-						delTimeMsDiff = delTimeMsTarget - thisDelTimeMs;
-
-						// check for target overshoot, and set factor to the target *exactly* 
-						if (sign(delTimeMsRampInc) != sign(delTimeMsDiff))
-						{
-							thisDelTimeMs = delTimeMsTarget;
-							thisDelTimeMsRampFlag = false;
-						}
-					}
-
-					// calculate the delTime and doubleDelTime in samples from the current value of thisDelTimeMs
-					delTimeSec = thisDelTimeMs / 1000.0f;
-					delTimeSamps = roundf(delTimeSec * storedSampleRate);
-					doubleDelTimeSec = delTimeSec * 2.0;
-					doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
-
-					// a simple 2-point interpolation scheme here instead of rounding delTimeSamps and doubleDelTimeSamps would probably get rid of the clicks we're getting when changing the delay time very quickly
-
 					leftMix[i] = offsetDelayBuffer[delBufSizeSamps - delTimeSamps + i] + delayBufferArray[channel][delBufSizeSamps - doubleDelTimeSamps + i] * delFdbk;
-				}
 
 				// push the delay buffer contents backwards by 1 block
 				for (int j = 0; j < delBufSizeSamps - storedBlockSize; j++)
@@ -315,32 +250,8 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 			default:
 				// mix the current block of input with the delayed block
 				for (int i = 0; i < storedBlockSize; i++)
-				{
-					if (thisDelTimeMsRampFlag)
-					{
-						float delTimeMsDiff;
-
-						// since we haven't hit the target yet, add the increment
-						thisDelTimeMs += delTimeMsRampInc;
-						delTimeMsDiff = delTimeMsTarget - thisDelTimeMs;
-
-						// check for target overshoot, and set factor to the target *exactly* 
-						if (sign(delTimeMsRampInc) != sign(delTimeMsDiff))
-						{
-							thisDelTimeMs = delTimeMsTarget;
-							thisDelTimeMsRampFlag = false;
-						}
-					}
-
-					// calculate the delTime and doubleDelTime in samples from the current value of thisDelTimeMs
-					delTimeSec = thisDelTimeMs / 1000.0f;
-					delTimeSamps = roundf(delTimeSec * storedSampleRate);
-					doubleDelTimeSec = delTimeSec * 2.0;
-					doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
-
 					channelData[i] += delayBufferArray[channel][delBufSizeSamps - doubleDelTimeSamps + i] * delFdbk;
-				}
-
+				
 				// push the delay buffer contents backwards by 1 block
 				for (int i = 0; i < delBufSizeSamps - storedBlockSize; i++)
 					delayBufferArray[channel][i] = delayBufferArray[channel][i + storedBlockSize];
@@ -354,10 +265,6 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 
 
 	}
-
-	// update these for the next block
-	delTimeMs = thisDelTimeMs;
-	delTimeMsRampFlag = thisDelTimeMsRampFlag;
 }
 
 //==============================================================================

@@ -92,6 +92,7 @@ public:
 
 	bool sliderValChangeFlag;
 	bool delTimeMsRampFlag;
+	bool tempoSyncFlag;
 
 private:
 	//==============================================================================

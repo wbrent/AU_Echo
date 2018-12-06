@@ -43,6 +43,7 @@ EchoDelayAudioProcessor::EchoDelayAudioProcessor()
 	doubleDelTimeSamps = roundf(doubleDelTimeSec * storedSampleRate);
 
 	delFdbk = 0.7f; // 70% initial feedback
+	tempoSyncFlag = false;
 }
 
 EchoDelayAudioProcessor::~EchoDelayAudioProcessor()
@@ -220,7 +221,7 @@ void EchoDelayAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffe
 
 
 	// this should be a flag that gets switched on or off via a GUI toggle
-	if (false)
+	if (tempoSyncFlag)
 	{
 		getPlayHead()->getCurrentPosition(currentPositionInfo);
 		delTimeSec = 60.0f / currentPositionInfo.bpm;

@@ -31,6 +31,7 @@ public:
 private:
 
 	void sliderValueChanged(Slider* slider) override;
+	void updateToggleState(Button* button);
 
 	// This reference is provided as a quick way for your editor to
 	// access the processor object that created it.
@@ -39,6 +40,7 @@ private:
 	Slider delayTime;
 	Slider delRampTime;
 	Slider feedbackPercent;
+	ToggleButton tempoSync;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EchoDelayAudioProcessorEditor)
 };

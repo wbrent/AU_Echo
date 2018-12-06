@@ -42,10 +42,15 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor(EchoDelayAudioProce
 	feedbackPercent.setTextValueSuffix(" Feedback (%)");
 	feedbackPercent.setValue(70.0);
 
+	tempoSync.setButtonText("Sync");
+
 	// this function adds the slider to the editor
 	addAndMakeVisible(&delayTime);
 	addAndMakeVisible(&delRampTime);
 	addAndMakeVisible(&feedbackPercent);
+	addAndMakeVisible(&tempoSync);
+
+	tempoSync.onClick = [this] {updateToggleState(&tempoSync); };
 
 	// add the listener to the slider
 	delayTime.addListener(this);
@@ -69,6 +74,12 @@ void EchoDelayAudioProcessorEditor::sliderValueChanged(Slider* slider)
 	//processor.doubleDelTimeSec = processor.delTimeSec * 2.0;
 	//processor.doubleDelTimeSamps = roundf(processor.doubleDelTimeSec * processor.storedSampleRate);
 }
+
+void  EchoDelayAudioProcessorEditor::updateToggleState(Button* button)
+{
+	processor.tempoSyncFlag = tempoSync.getToggleState();
+}
+
 //==============================================================================
 void EchoDelayAudioProcessorEditor::paint(Graphics& g)
 {
@@ -89,4 +100,5 @@ void EchoDelayAudioProcessorEditor::resized()
 	delayTime.setBounds(40, 30, 20, getHeight() - 60);
 	delRampTime.setBounds(100, 30, 20, getHeight() - 60);
 	feedbackPercent.setBounds(160, 30, 20, getHeight() - 60);
+	tempoSync.setBounds(220, 30, 100, 30);
 }
